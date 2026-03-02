@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.png', 'icon-192.png', 'icon-512.png'],
       manifest: {
-        name: 'LinkHub',
-        short_name: 'LinkHub',
+        name: 'LinkNest',
+        short_name: 'LinkNest',
         description: 'Share all your links in one clean page',
         theme_color: '#7c3aed',
         background_color: '#ffffff',
