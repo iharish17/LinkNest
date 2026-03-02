@@ -348,7 +348,7 @@ export function Dashboard() {
       <header className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-extrabold text-gray-900">Dashboard</h1>
+            <h1 className="text-xl font-extrabold text-gray-900">LinkNest | Dashboard</h1>
             <p className="text-xs text-gray-500">
               Manage your profile & links easily ✨
             </p>

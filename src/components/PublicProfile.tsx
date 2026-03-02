@@ -292,7 +292,7 @@ export function PublicProfile({ username }: PublicProfileProps) {
               href="/"
               className="text-purple-600 hover:underline font-semibold"
             >
-              LinkHub
+              LinkNest
             </a>
           </p>
         </div>

@@ -69,7 +69,7 @@ export function Auth() {
           </div>
 
           <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-2 animate-fadeInUp" style={{ animationDelay: "0.2s" }}>
-            LinkHub
+            LinkNest
           </h1>
           <p className="text-gray-600 text-sm animate-fadeInUp" style={{ animationDelay: "0.3s" }}>
             Share all your links in one clean page ✨
