@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase, Link } from "../lib/supabase";
+import {
+  getAnchoredPopupPosition,
+  type AnchoredPopupPosition,
+} from "../lib/anchoredPopup";
 import { cacheLinks, getCachedLinks } from "../lib/offlineCache";
 import {
   Plus,
@@ -43,6 +47,11 @@ type PopularLink = {
   url: string;
   platform: string;
   icon: JSX.Element;
+};
+
+type DeleteLinkPopup = {
+  link: Link;
+  position: AnchoredPopupPosition;
 };
 
 const popularLinks: PopularLink[] = [
@@ -156,7 +165,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showPopularModal, setShowPopularModal] = useState(false);
-  const [linkToDelete, setLinkToDelete] = useState<Link | null>(null);
+  const [linkToDelete, setLinkToDelete] = useState<DeleteLinkPopup | null>(null);
   const [deletingLinkId, setDeletingLinkId] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
@@ -207,6 +216,19 @@ export function LinkManager({ userId }: LinkManagerProps) {
       window.removeEventListener("offline", goOffline);
     };
   }, []);
+
+  useEffect(() => {
+    if (!linkToDelete) return;
+
+    const closePopup = () => setLinkToDelete(null);
+    window.addEventListener("resize", closePopup);
+    window.addEventListener("scroll", closePopup, true);
+
+    return () => {
+      window.removeEventListener("resize", closePopup);
+      window.removeEventListener("scroll", closePopup, true);
+    };
+  }, [linkToDelete]);
 
   const handleAddLink = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -260,21 +282,24 @@ export function LinkManager({ userId }: LinkManagerProps) {
     }
   };
 
-  const handleDeleteRequest = (link: Link) => {
-    setLinkToDelete(link);
+  const handleDeleteRequest = (link: Link, button: HTMLButtonElement) => {
+    setLinkToDelete({
+      link,
+      position: getAnchoredPopupPosition(button.getBoundingClientRect()),
+    });
   };
 
   const confirmDeleteLink = async () => {
     if (!linkToDelete) return;
 
     try {
-      setDeletingLinkId(linkToDelete.id);
+      setDeletingLinkId(linkToDelete.link.id);
       const toastId = toast.loading("Deleting link...");
 
       const { error } = await supabase
         .from("links")
         .delete()
-        .eq("id", linkToDelete.id);
+        .eq("id", linkToDelete.link.id);
 
       if (error) throw error;
 
@@ -532,10 +557,10 @@ export function LinkManager({ userId }: LinkManagerProps) {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          className="fixed inset-0 z-50"
         >
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0"
             onClick={() => {
               if (!deletingLinkId) {
                 setLinkToDelete(null);
@@ -543,19 +568,25 @@ export function LinkManager({ userId }: LinkManagerProps) {
             }}
           />
 
-          <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 max-w-md w-full z-10 animate-zoomIn">
+          <div
+            className="fixed z-10 w-80 rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl animate-zoomIn"
+            style={{
+              top: linkToDelete.position.top,
+              left: linkToDelete.position.left,
+            }}
+          >
             <h3 className="text-lg font-bold text-gray-900 mb-2">
               Delete Link
             </h3>
             <p className="text-sm text-gray-600 mb-2">
               Are you sure you want to delete{" "}
               <span className="font-semibold text-gray-900">
-                {linkToDelete.title}
+                {linkToDelete.link.title}
               </span>
               ?
             </p>
             <p className="text-xs text-gray-500 mb-4 break-all">
-              {linkToDelete.url}
+              {linkToDelete.link.url}
             </p>
 
             <div className="flex justify-end gap-3">
@@ -590,7 +621,7 @@ type LinkItemProps = {
   isOffline: boolean;
   onEdit: (id: string | null) => void;
   onUpdate: (id: string, updates: Partial<Link>) => Promise<void>;
-  onDelete: (link: Link) => void;
+  onDelete: (link: Link, button: HTMLButtonElement) => void;
   onToggleActive: (link: Link) => Promise<void>;
   onMove: (index: number, direction: "up" | "down") => void;
 };
@@ -718,7 +749,7 @@ function LinkItem({
           </button>
 
           <button
-            onClick={() => onDelete(link)}
+            onClick={(e) => onDelete(link, e.currentTarget)}
             disabled={isOffline}
             className="p-2 hover:bg-red-50 rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
           >

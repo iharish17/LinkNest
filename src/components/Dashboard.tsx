@@ -2,6 +2,10 @@ import { type FormEvent, useCallback, useEffect, useRef, useState } from "react"
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../lib/supabase";
 import {
+  getAnchoredPopupPosition,
+  type AnchoredPopupPosition,
+} from "../lib/anchoredPopup";
+import {
   cacheProfile,
   getCachedProfile,
   cacheAnalytics,
@@ -45,7 +49,9 @@ export function Dashboard() {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [showDeleteAvatarModal, setShowDeleteAvatarModal] = useState(false);
+  const [deleteAvatarPopup, setDeleteAvatarPopup] =
+    useState<AnchoredPopupPosition | null>(null);
+  const [deletingAvatar, setDeletingAvatar] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
@@ -159,6 +165,19 @@ export function Dashboard() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!deleteAvatarPopup) return;
+
+    const closePopup = () => setDeleteAvatarPopup(null);
+    window.addEventListener("resize", closePopup);
+    window.addEventListener("scroll", closePopup, true);
+
+    return () => {
+      window.removeEventListener("resize", closePopup);
+      window.removeEventListener("scroll", closePopup, true);
+    };
+  }, [deleteAvatarPopup]);
 
   const handleSaveProfile = async () => {
     if (!profile) return;
@@ -286,21 +305,22 @@ export function Dashboard() {
     }
   };
 
-  // Open the modal to confirm deletion
-  const handleDeleteAvatar = () => {
+  const handleDeleteAvatar = (button: HTMLButtonElement) => {
     if (!profile?.avatar_url) {
       toast.error("No avatar to delete ❌");
       return;
     }
 
-    setShowDeleteAvatarModal(true);
+    setDeleteAvatarPopup(
+      getAnchoredPopupPosition(button.getBoundingClientRect(), 320, 170)
+    );
   };
 
-  // Called when the user confirms deletion in the modal
   const confirmDeleteAvatar = async () => {
-    setShowDeleteAvatarModal(false);
+    if (!profile?.avatar_url) return;
 
     try {
+      setDeletingAvatar(true);
       const toastId = toast.loading("Deleting avatar...");
 
       const splitUrl = profile?.avatar_url?.split("/avatars/");
@@ -328,9 +348,12 @@ export function Dashboard() {
       setProfile((prev) => (prev ? { ...prev, avatar_url: "" } : prev));
 
       toast.success("Avatar deleted successfully 🗑️", { id: toastId });
+      setDeleteAvatarPopup(null);
     } catch (err: Error | unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
       toast.error(error.message || "Failed to delete avatar ❌");
+    } finally {
+      setDeletingAvatar(false);
     }
   };
 
@@ -619,7 +642,7 @@ export function Dashboard() {
 
             {profile?.avatar_url && (
               <button
-                onClick={handleDeleteAvatar}
+                onClick={(e) => handleDeleteAvatar(e.currentTarget)}
                 className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold bg-red-600 text-white hover:bg-red-700 transition"
               >
                 <Trash2 className="w-4 h-4" />
@@ -628,36 +651,47 @@ export function Dashboard() {
             )}
           </div>
 
-          {/* Delete Avatar Confirmation Modal */}
-          {showDeleteAvatarModal && (
-            <div
-              role="dialog"
-              aria-modal="true"
-              className="fixed inset-0 z-50 flex items-center justify-center px-4"
-            >
-              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          {deleteAvatarPopup && (
+            <div role="dialog" aria-modal="true" className="fixed inset-0 z-50">
+              <div
+                className="absolute inset-0"
+                onClick={() => {
+                  if (!deletingAvatar) {
+                    setDeleteAvatarPopup(null);
+                  }
+                }}
+              />
 
-              <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 max-w-md w-full z-10 animate-zoomIn">
+              <div
+                className="fixed z-10 w-80 rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl animate-zoomIn"
+                style={{
+                  top: deleteAvatarPopup.top,
+                  left: deleteAvatarPopup.left,
+                }}
+              >
                 <h3 className="text-lg font-bold text-gray-900 mb-2">
                   Delete Avatar
                 </h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Are you sure you want to delete your avatar? This action cannot be undone.
+                  Are you sure you want to delete your avatar? This action
+                  cannot be undone.
                 </p>
 
                 <div className="flex justify-end gap-3">
                   <button
-                    onClick={() => setShowDeleteAvatarModal(false)}
-                    className="px-4 py-2 rounded-xl bg-gray-200 text-gray-800 font-semibold"
+                    onClick={() => setDeleteAvatarPopup(null)}
+                    disabled={deletingAvatar}
+                    className="px-4 py-2 rounded-xl bg-gray-200 text-gray-800 font-semibold disabled:opacity-60"
                   >
                     Cancel
                   </button>
 
                   <button
                     onClick={confirmDeleteAvatar}
-                    className="px-4 py-2 rounded-xl bg-red-600 text-white font-semibold"
+                    disabled={deletingAvatar}
+                    className="px-4 py-2 rounded-xl bg-red-600 text-white font-semibold disabled:opacity-60"
                   >
-                    Delete
+                    {deletingAvatar ? "Deleting..." : "Delete"}
                   </button>
                 </div>
               </div>
