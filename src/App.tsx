@@ -7,7 +7,7 @@ import { PublicProfile } from "./components/PublicProfile";
 import { Toaster } from "react-hot-toast";
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user, loading, isPasswordRecovery } = useAuth();
   const [currentView, setCurrentView] = useState<
     "auth" | "dashboard" | "profile"
   >("auth");
@@ -18,7 +18,7 @@ function AppContent() {
       const path = window.location.pathname;
 
       if (path === "/" || path === "") {
-        setCurrentView(user ? "dashboard" : "auth");
+        setCurrentView(user && !isPasswordRecovery ? "dashboard" : "auth");
       } else {
         const usernameFromPath = path.substring(1);
         setUsername(usernameFromPath);
@@ -29,7 +29,7 @@ function AppContent() {
     updateView();
     window.addEventListener("popstate", updateView);
     return () => window.removeEventListener("popstate", updateView);
-  }, [user]);
+  }, [isPasswordRecovery, user]);
 
   if (loading) {
     return (
