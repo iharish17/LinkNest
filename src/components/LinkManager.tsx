@@ -156,6 +156,8 @@ export function LinkManager({ userId }: LinkManagerProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showPopularModal, setShowPopularModal] = useState(false);
+  const [linkToDelete, setLinkToDelete] = useState<Link | null>(null);
+  const [deletingLinkId, setDeletingLinkId] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   const [formData, setFormData] = useState({
@@ -258,21 +260,32 @@ export function LinkManager({ userId }: LinkManagerProps) {
     }
   };
 
-  const handleDeleteLink = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this link?")) return;
+  const handleDeleteRequest = (link: Link) => {
+    setLinkToDelete(link);
+  };
+
+  const confirmDeleteLink = async () => {
+    if (!linkToDelete) return;
 
     try {
+      setDeletingLinkId(linkToDelete.id);
       const toastId = toast.loading("Deleting link...");
 
-      const { error } = await supabase.from("links").delete().eq("id", id);
+      const { error } = await supabase
+        .from("links")
+        .delete()
+        .eq("id", linkToDelete.id);
 
       if (error) throw error;
 
       toast.success("Link deleted 🗑️", { id: toastId });
+      setLinkToDelete(null);
       await loadLinks();
     } catch (error) {
       console.error("Error deleting link:", error);
       toast.error("Failed to delete link ❌");
+    } finally {
+      setDeletingLinkId(null);
     }
   };
 
@@ -507,11 +520,62 @@ export function LinkManager({ userId }: LinkManagerProps) {
               isOffline={isOffline}
               onEdit={setEditingId}
               onUpdate={handleUpdateLink}
-              onDelete={handleDeleteLink}
+              onDelete={handleDeleteRequest}
               onToggleActive={handleToggleActive}
               onMove={moveLink}
             />
           ))}
+        </div>
+      )}
+
+      {linkToDelete && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+        >
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => {
+              if (!deletingLinkId) {
+                setLinkToDelete(null);
+              }
+            }}
+          />
+
+          <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 max-w-md w-full z-10 animate-zoomIn">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              Delete Link
+            </h3>
+            <p className="text-sm text-gray-600 mb-2">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-gray-900">
+                {linkToDelete.title}
+              </span>
+              ?
+            </p>
+            <p className="text-xs text-gray-500 mb-4 break-all">
+              {linkToDelete.url}
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setLinkToDelete(null)}
+                disabled={!!deletingLinkId}
+                className="px-4 py-2 rounded-xl bg-gray-200 text-gray-800 font-semibold disabled:opacity-60"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={confirmDeleteLink}
+                disabled={!!deletingLinkId}
+                className="px-4 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition disabled:opacity-60"
+              >
+                {deletingLinkId ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -526,7 +590,7 @@ type LinkItemProps = {
   isOffline: boolean;
   onEdit: (id: string | null) => void;
   onUpdate: (id: string, updates: Partial<Link>) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
+  onDelete: (link: Link) => void;
   onToggleActive: (link: Link) => Promise<void>;
   onMove: (index: number, direction: "up" | "down") => void;
 };
@@ -654,7 +718,7 @@ function LinkItem({
           </button>
 
           <button
-            onClick={() => onDelete(link.id)}
+            onClick={() => onDelete(link)}
             disabled={isOffline}
             className="p-2 hover:bg-red-50 rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
           >
