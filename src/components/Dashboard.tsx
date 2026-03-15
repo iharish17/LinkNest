@@ -1,4 +1,11 @@
-import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../lib/supabase";
 import {
@@ -11,6 +18,8 @@ import {
   cacheAnalytics,
   getCachedAnalytics,
 } from "../lib/offlineCache";
+import { AnimatedPresence } from "./AnimatedPresence";
+import { AnchoredPopup } from "./AnchoredPopup";
 import { LinkManager } from "./LinkManager";
 import { QRCodeGenerator } from "./QRCodeGenerator";
 import {
@@ -51,6 +60,7 @@ export function Dashboard() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [deleteAvatarPopup, setDeleteAvatarPopup] =
     useState<AnchoredPopupPosition | null>(null);
+  const [isDeleteAvatarPopupOpen, setIsDeleteAvatarPopupOpen] = useState(false);
   const [deletingAvatar, setDeletingAvatar] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
@@ -169,7 +179,7 @@ export function Dashboard() {
   useEffect(() => {
     if (!deleteAvatarPopup) return;
 
-    const closePopup = () => setDeleteAvatarPopup(null);
+    const closePopup = () => setIsDeleteAvatarPopupOpen(false);
     window.addEventListener("resize", closePopup);
     window.addEventListener("scroll", closePopup, true);
 
@@ -314,6 +324,7 @@ export function Dashboard() {
     setDeleteAvatarPopup(
       getAnchoredPopupPosition(button.getBoundingClientRect(), 320, 170)
     );
+    setIsDeleteAvatarPopupOpen(true);
   };
 
   const confirmDeleteAvatar = async () => {
@@ -348,7 +359,7 @@ export function Dashboard() {
       setProfile((prev) => (prev ? { ...prev, avatar_url: "" } : prev));
 
       toast.success("Avatar deleted successfully 🗑️", { id: toastId });
-      setDeleteAvatarPopup(null);
+      setIsDeleteAvatarPopupOpen(false);
     } catch (err: Error | unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
       toast.error(error.message || "Failed to delete avatar ❌");
@@ -509,62 +520,76 @@ export function Dashboard() {
                 />
               </button>
 
-              {showDropdown && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-dropdownOpen z-50">
-                  <div className="p-1.5">
-                    <button
-                      onClick={() => {
-                        setShowDropdown(false);
-                        setShowQRModal(true);
-                      }}
-                      className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-cyan-50 transition-all duration-200 group"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-purple-100 group-hover:bg-gradient-to-br group-hover:from-purple-500 group-hover:to-cyan-500 flex items-center justify-center transition-all duration-200">
-                        <QrCode className="w-4 h-4 text-purple-600 group-hover:text-white transition-colors" />
-                      </div>
-                      Generate QR Code
-                    </button>
+              <AnimatedPresence show={showDropdown} duration={220}>
+                {(state) => (
+                  <div
+                    className={`absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-2xl border border-white/70 bg-white/95 shadow-2xl backdrop-blur-xl ${
+                      state === "enter"
+                        ? "motion-menu-enter"
+                        : "motion-menu-exit"
+                    }`}
+                  >
+                    <div className="p-1.5">
+                      <button
+                        onClick={() => {
+                          setShowDropdown(false);
+                          setShowQRModal(true);
+                        }}
+                        className="motion-menu-item group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 transition-all duration-200 hover:bg-gradient-to-r hover:from-purple-50 hover:to-cyan-50"
+                        style={{ "--stagger-index": 0 } as CSSProperties}
+                      >
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100 transition-all duration-200 group-hover:bg-gradient-to-br group-hover:from-purple-500 group-hover:to-cyan-500">
+                          <QrCode className="h-4 w-4 text-purple-600 transition-colors group-hover:text-white" />
+                        </div>
+                        Generate QR Code
+                      </button>
 
-                    <div className="h-px bg-gray-100 mx-2 my-1" />
+                      <div className="mx-2 my-1 h-px bg-gray-100" />
 
-                    <button
-                      onClick={handleOpenChangePasswordModal}
-                      className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gradient-to-r hover:from-rose-50 hover:to-orange-50 transition-all duration-200 group"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-rose-100 group-hover:bg-gradient-to-br group-hover:from-rose-500 group-hover:to-orange-500 flex items-center justify-center transition-all duration-200">
-                        <Lock className="w-4 h-4 text-rose-600 group-hover:text-white transition-colors" />
-                      </div>
-                      Change Password
-                    </button>
+                      <button
+                        onClick={handleOpenChangePasswordModal}
+                        className="motion-menu-item group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 transition-all duration-200 hover:bg-gradient-to-r hover:from-rose-50 hover:to-orange-50"
+                        style={{ "--stagger-index": 1 } as CSSProperties}
+                      >
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-100 transition-all duration-200 group-hover:bg-gradient-to-br group-hover:from-rose-500 group-hover:to-orange-500">
+                          <Lock className="h-4 w-4 text-rose-600 transition-colors group-hover:text-white" />
+                        </div>
+                        Change Password
+                      </button>
 
-                    <button
-                      onClick={handleForgotPassword}
-                      disabled={sendingResetEmail}
-                      className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 transition-all duration-200 group disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-cyan-100 group-hover:bg-gradient-to-br group-hover:from-cyan-500 group-hover:to-blue-500 flex items-center justify-center transition-all duration-200">
-                        <Mail className="w-4 h-4 text-cyan-600 group-hover:text-white transition-colors" />
-                      </div>
-                      {sendingResetEmail ? "Sending Reset Email..." : "Forgot Password"}
-                    </button>
+                      <button
+                        onClick={handleForgotPassword}
+                        disabled={sendingResetEmail}
+                        className="motion-menu-item group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 transition-all duration-200 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        style={{ "--stagger-index": 2 } as CSSProperties}
+                      >
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-100 transition-all duration-200 group-hover:bg-gradient-to-br group-hover:from-cyan-500 group-hover:to-blue-500">
+                          <Mail className="h-4 w-4 text-cyan-600 transition-colors group-hover:text-white" />
+                        </div>
+                        {sendingResetEmail
+                          ? "Sending Reset Email..."
+                          : "Forgot Password"}
+                      </button>
 
-                    <div className="h-px bg-gray-100 mx-2 my-1" />
+                      <div className="mx-2 my-1 h-px bg-gray-100" />
 
-                    <button
-                      onClick={() => {
-                        setShowDropdown(false);
-                        signOut();
-                      }}
-                      className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 group"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-red-100 flex items-center justify-center transition-all duration-200">
-                        <LogOut className="w-4 h-4 text-gray-500 group-hover:text-red-500 transition-colors" />
-                      </div>
-                      Logout
-                    </button>
+                      <button
+                        onClick={() => {
+                          setShowDropdown(false);
+                          signOut();
+                        }}
+                        className="motion-menu-item group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 transition-all duration-200 hover:bg-red-50 hover:text-red-600"
+                        style={{ "--stagger-index": 3 } as CSSProperties}
+                      >
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 transition-all duration-200 group-hover:bg-red-100">
+                          <LogOut className="h-4 w-4 text-gray-500 transition-colors group-hover:text-red-500" />
+                        </div>
+                        Logout
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </AnimatedPresence>
             </div>
           </div>
         </div>
@@ -652,50 +677,39 @@ export function Dashboard() {
           </div>
 
           {deleteAvatarPopup && (
-            <div role="dialog" aria-modal="true" className="fixed inset-0 z-50">
-              <div
-                className="absolute inset-0"
-                onClick={() => {
-                  if (!deletingAvatar) {
-                    setDeleteAvatarPopup(null);
-                  }
-                }}
-              />
+            <AnchoredPopup
+              open={isDeleteAvatarPopupOpen}
+              position={deleteAvatarPopup}
+              onDismiss={() => setIsDeleteAvatarPopupOpen(false)}
+              onExited={() => setDeleteAvatarPopup(null)}
+              dismissDisabled={deletingAvatar}
+              popupClassName="w-80 rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl"
+            >
+              <h3 className="mb-2 text-lg font-bold text-gray-900">
+                Delete Avatar
+              </h3>
+              <p className="mb-4 text-sm text-gray-600">
+                Remove your profile photo? This action cannot be undone.
+              </p>
 
-              <div
-                className="fixed z-10 w-80 rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl animate-zoomIn"
-                style={{
-                  top: deleteAvatarPopup.top,
-                  left: deleteAvatarPopup.left,
-                }}
-              >
-                <h3 className="text-lg font-bold text-gray-900 mb-2">
-                  Delete Avatar
-                </h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Are you sure you want to delete your avatar? This action
-                  cannot be undone.
-                </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setIsDeleteAvatarPopupOpen(false)}
+                  disabled={deletingAvatar}
+                  className="rounded-xl bg-gray-200 px-4 py-2 font-semibold text-gray-800 disabled:opacity-60"
+                >
+                  Cancel
+                </button>
 
-                <div className="flex justify-end gap-3">
-                  <button
-                    onClick={() => setDeleteAvatarPopup(null)}
-                    disabled={deletingAvatar}
-                    className="px-4 py-2 rounded-xl bg-gray-200 text-gray-800 font-semibold disabled:opacity-60"
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    onClick={confirmDeleteAvatar}
-                    disabled={deletingAvatar}
-                    className="px-4 py-2 rounded-xl bg-red-600 text-white font-semibold disabled:opacity-60"
-                  >
-                    {deletingAvatar ? "Deleting..." : "Delete"}
-                  </button>
-                </div>
+                <button
+                  onClick={confirmDeleteAvatar}
+                  disabled={deletingAvatar}
+                  className="rounded-xl bg-red-600 px-4 py-2 font-semibold text-white disabled:opacity-60"
+                >
+                  {deletingAvatar ? "Deleting..." : "Delete"}
+                </button>
               </div>
-            </div>
+            </AnchoredPopup>
           )}
 
           {/* Username */}

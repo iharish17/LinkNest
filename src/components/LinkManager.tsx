@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type CSSProperties } from "react";
 import { supabase, Link } from "../lib/supabase";
 import {
   getAnchoredPopupPosition,
   type AnchoredPopupPosition,
 } from "../lib/anchoredPopup";
 import { cacheLinks, getCachedLinks } from "../lib/offlineCache";
+import { AnchoredPopup } from "./AnchoredPopup";
+import { AnimatedPresence } from "./AnimatedPresence";
 import {
   Plus,
   Trash2,
@@ -166,6 +168,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showPopularModal, setShowPopularModal] = useState(false);
   const [linkToDelete, setLinkToDelete] = useState<DeleteLinkPopup | null>(null);
+  const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [deletingLinkId, setDeletingLinkId] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
@@ -220,7 +223,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
   useEffect(() => {
     if (!linkToDelete) return;
 
-    const closePopup = () => setLinkToDelete(null);
+    const closePopup = () => setIsDeletePopupOpen(false);
     window.addEventListener("resize", closePopup);
     window.addEventListener("scroll", closePopup, true);
 
@@ -287,6 +290,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
       link,
       position: getAnchoredPopupPosition(button.getBoundingClientRect()),
     });
+    setIsDeletePopupOpen(true);
   };
 
   const confirmDeleteLink = async () => {
@@ -304,7 +308,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
       if (error) throw error;
 
       toast.success("Link deleted 🗑️", { id: toastId });
-      setLinkToDelete(null);
+      setIsDeletePopupOpen(false);
       await loadLinks();
     } catch (error) {
       console.error("Error deleting link:", error);
@@ -400,60 +404,87 @@ export function LinkManager({ userId }: LinkManagerProps) {
       </div>
 
       {/* Popular Links Modal */}
-      {showPopularModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-gray-200 p-6 animate-fadeIn">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-xl font-extrabold text-gray-900">
-                Popular Links
-              </h3>
+      <AnimatedPresence show={showPopularModal} duration={280}>
+        {(state) => (
+          <div className="fixed inset-0 z-[110] flex items-end justify-center px-4 pb-4 pt-10 sm:items-center">
+            <div
+              className={`absolute inset-0 bg-slate-950/28 backdrop-blur-[2px] ${
+                state === "enter"
+                  ? "motion-overlay-enter"
+                  : "motion-overlay-exit"
+              }`}
+              onClick={() => setShowPopularModal(false)}
+            />
 
-              <button
-                onClick={() => setShowPopularModal(false)}
-                className="p-2 rounded-xl hover:bg-gray-100 transition"
-              >
-                <X className="w-5 h-5 text-gray-700" />
-              </button>
-            </div>
+            <div
+              className={`relative max-h-[78vh] w-full max-w-xl overflow-y-auto rounded-[2rem] border border-gray-200 bg-white px-5 pb-6 pt-5 shadow-2xl sm:rounded-3xl sm:p-6 ${
+                state === "enter"
+                  ? "motion-attachments-enter"
+                  : "motion-attachments-exit"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-xl font-extrabold text-gray-900">
+                  Popular Links
+                </h3>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {popularLinks.map((link) => (
                 <button
-                  key={link.name}
-                  onClick={() => handleSelectPopular(link)}
-                  className="flex items-center gap-3 p-3 rounded-2xl border border-gray-200 hover:border-purple-400 hover:bg-rose-50 transition font-semibold text-gray-800"
+                  onClick={() => setShowPopularModal(false)}
+                  className="p-2 rounded-xl hover:bg-gray-100 transition"
                 >
-                  <div className="p-2 rounded-xl bg-gray-100">{link.icon}</div>
-                  <span className="text-sm">{link.name}</span>
+                  <X className="w-5 h-5 text-gray-700" />
                 </button>
-              ))}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {popularLinks.map((link, index) => (
+                  <button
+                    key={link.name}
+                    onClick={() => handleSelectPopular(link)}
+                    className="motion-attachment-item flex items-center gap-3 rounded-2xl border border-gray-200 p-3 font-semibold text-gray-800 transition hover:border-purple-400 hover:bg-rose-50"
+                    style={
+                      {
+                        "--stagger-index": index,
+                      } as CSSProperties
+                    }
+                  >
+                    <div className="p-2 rounded-xl bg-gray-100">{link.icon}</div>
+                    <span className="text-sm">{link.name}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatedPresence>
 
       {/* Add Link Form */}
-      {showAddForm && (
-        <form
-          onSubmit={handleAddLink}
-          className="mb-6 p-5 bg-gray-50 rounded-2xl border border-gray-200 animate-fadeIn"
-        >
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Title
-              </label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
-                className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 outline-none transition-all bg-white/50"
-                placeholder="My Website"
-                required
-              />
-            </div>
+      <AnimatedPresence show={showAddForm} duration={240}>
+        {(state) => (
+          <form
+            onSubmit={handleAddLink}
+            className={`mb-6 overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 p-5 ${
+              state === "enter"
+                ? "motion-inline-enter"
+                : "motion-inline-exit"
+            }`}
+          >
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                  className="w-full rounded-xl border border-purple-200 bg-white/50 px-4 py-3 outline-none transition-all focus:border-purple-500 focus:ring-4 focus:ring-purple-300"
+                  placeholder="My Website"
+                  required
+                />
+              </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -465,7 +496,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, url: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 outline-none transition-all bg-white/50"
+                className="w-full rounded-xl border border-purple-200 bg-white/50 px-4 py-3 outline-none transition-all focus:border-purple-500 focus:ring-4 focus:ring-purple-300"
                 placeholder="example.com"
                 required
               />
@@ -481,7 +512,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, platform: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-purple-200 rounded-xl bg-white/50 focus:ring-4 focus:ring-purple-300 focus:border-purple-500 outline-none transition-all"
+                className="w-full rounded-xl border border-purple-200 bg-white/50 px-4 py-3 outline-none transition-all focus:border-purple-500 focus:ring-4 focus:ring-purple-300"
               >
                 <option value="custom">Custom</option>
                 <option value="github">GitHub</option>
@@ -507,7 +538,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
             <div className="flex gap-2">
               <button
                 type="submit"
-                className="flex-1 py-3 rounded-xl bg-rose-500 text-white font-semibold hover:bg-rose-600 transition"
+                className="flex-1 rounded-xl bg-rose-500 py-3 font-semibold text-white transition hover:bg-rose-600"
               >
                 Add Link
               </button>
@@ -518,14 +549,15 @@ export function LinkManager({ userId }: LinkManagerProps) {
                   setShowAddForm(false);
                   setFormData({ title: "", url: "", platform: "custom" });
                 }}
-                className="px-5 py-3 rounded-xl bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition"
+                className="rounded-xl bg-gray-200 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-300"
               >
                 Cancel
               </button>
             </div>
-          </div>
-        </form>
-      )}
+            </div>
+          </form>
+        )}
+      </AnimatedPresence>
 
       {links.length === 0 ? (
         <div className="text-center py-14 text-gray-500">
@@ -554,60 +586,41 @@ export function LinkManager({ userId }: LinkManagerProps) {
       )}
 
       {linkToDelete && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50"
+        <AnchoredPopup
+          open={isDeletePopupOpen}
+          position={linkToDelete.position}
+          onDismiss={() => setIsDeletePopupOpen(false)}
+          onExited={() => setLinkToDelete(null)}
+          dismissDisabled={!!deletingLinkId}
+          popupClassName="w-80 rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl"
         >
-          <div
-            className="absolute inset-0"
-            onClick={() => {
-              if (!deletingLinkId) {
-                setLinkToDelete(null);
-              }
-            }}
-          />
+          <h3 className="mb-2 text-lg font-bold text-gray-900">Delete Link</h3>
+          <p className="mb-1 text-sm text-gray-600">
+            Are you sure you want to delete{" "}
+            <span className="font-semibold text-gray-900">
+              {linkToDelete.link.title}'s
+            </span>{" "}
+            link from your profile?
+          </p>
 
-          <div
-            className="fixed z-10 w-80 rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl animate-zoomIn"
-            style={{
-              top: linkToDelete.position.top,
-              left: linkToDelete.position.left,
-            }}
-          >
-            <h3 className="text-lg font-bold text-gray-900 mb-2">
-              Delete Link
-            </h3>
-            <p className="text-sm text-gray-600 mb-2">
-              Are you sure you want to delete{" "}
-              <span className="font-semibold text-gray-900">
-                {linkToDelete.link.title}
-              </span>
-              ?
-            </p>
-            <p className="text-xs text-gray-500 mb-4 break-all">
-              {linkToDelete.link.url}
-            </p>
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => setIsDeletePopupOpen(false)}
+              disabled={!!deletingLinkId}
+              className="rounded-xl bg-gray-200 px-4 py-2 font-semibold text-gray-800 disabled:opacity-60"
+            >
+              Cancel
+            </button>
 
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setLinkToDelete(null)}
-                disabled={!!deletingLinkId}
-                className="px-4 py-2 rounded-xl bg-gray-200 text-gray-800 font-semibold disabled:opacity-60"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={confirmDeleteLink}
-                disabled={!!deletingLinkId}
-                className="px-4 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition disabled:opacity-60"
-              >
-                {deletingLinkId ? "Deleting..." : "Delete"}
-              </button>
-            </div>
+            <button
+              onClick={confirmDeleteLink}
+              disabled={!!deletingLinkId}
+              className="rounded-xl bg-red-600 px-4 py-2 font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
+            >
+              {deletingLinkId ? "Deleting..." : "Delete"}
+            </button>
           </div>
-        </div>
+        </AnchoredPopup>
       )}
     </div>
   );
@@ -641,6 +654,25 @@ function LinkItem({
   const [title, setTitle] = useState(link.title);
   const [url, setUrl] = useState(link.url);
   const isEditing = editingId === link.id;
+  const [showEditShell, setShowEditShell] = useState(isEditing);
+
+  useEffect(() => {
+    let timeoutId: number | undefined;
+
+    if (isEditing) {
+      setShowEditShell(true);
+    } else if (showEditShell) {
+      timeoutId = window.setTimeout(() => {
+        setShowEditShell(false);
+      }, 220);
+    }
+
+    return () => {
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [isEditing, showEditShell]);
 
   const handleSave = async () => {
     await onUpdate(link.id, { title, url });
@@ -653,9 +685,13 @@ function LinkItem({
     onEdit(null);
   };
 
-  if (isEditing) {
+  if (showEditShell) {
     return (
-      <div className="p-5 bg-purple-50 border border-purple-200 rounded-2xl shadow-sm animate-fadeIn">
+      <div
+        className={`overflow-hidden rounded-2xl border border-purple-200 bg-purple-50 p-5 shadow-sm ${
+          isEditing ? "motion-inline-enter" : "motion-inline-exit"
+        }`}
+      >
         <div className="space-y-3">
           <input
             type="text"
