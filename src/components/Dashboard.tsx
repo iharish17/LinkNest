@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../lib/supabase";
 import {
@@ -35,7 +35,7 @@ interface Profile {
 }
 
 export function Dashboard() {
-  const { user, signOut, resetPassword, updatePassword } = useAuth();
+  const { user, signOut, resetPassword, changePassword } = useAuth();
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [displayName, setDisplayName] = useState("");
@@ -49,6 +49,7 @@ export function Dashboard() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -335,6 +336,7 @@ export function Dashboard() {
 
   const closeChangePasswordModal = () => {
     setShowChangePasswordModal(false);
+    setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
     setPasswordError("");
@@ -343,16 +345,27 @@ export function Dashboard() {
   const handleOpenChangePasswordModal = () => {
     setShowDropdown(false);
     setPasswordError("");
+    setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
     setShowChangePasswordModal(true);
   };
 
-  const handleChangePassword = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleChangePassword = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!currentPassword) {
+      setPasswordError("Current password is required");
+      return;
+    }
 
     if (newPassword.length < 6) {
       setPasswordError("Password must be at least 6 characters");
+      return;
+    }
+
+    if (currentPassword === newPassword) {
+      setPasswordError("New password must be different from current password");
       return;
     }
 
@@ -366,7 +379,7 @@ export function Dashboard() {
       setPasswordError("");
 
       const toastId = toast.loading("Updating password...");
-      const { error } = await updatePassword(newPassword);
+      const { error } = await changePassword(currentPassword, newPassword);
 
       if (error) {
         throw error;
@@ -779,8 +792,26 @@ export function Dashboard() {
             <p className="text-sm text-gray-600 mb-4">
               Update the password for {user?.email || "your account"}.
             </p>
+            <p className="text-xs text-gray-500 mb-4">
+              If you do not remember your current password, use the forgot
+              password option in the account menu.
+            </p>
 
             <form onSubmit={handleChangePassword} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Current Password
+                </label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 outline-none transition-all bg-white/50"
+                  placeholder="Enter your current password"
+                  required
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
                   New Password

@@ -1,6 +1,6 @@
 import React, { createContext, useEffect, useState } from "react";
 import type { AuthChangeEvent, User } from "@supabase/supabase-js";
-import { supabase } from "../lib/supabase";
+import { createEphemeralSupabaseClient, supabase } from "../lib/supabase";
 
 interface AuthContextType {
   user: User | null;
@@ -13,6 +13,10 @@ interface AuthContextType {
     username: string
   ) => Promise<{ error: Error | null }>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string
+  ) => Promise<{ error: Error | null }>;
   updatePassword: (password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -223,6 +227,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const changePassword = async (
+    currentPassword: string,
+    newPassword: string
+  ) => {
+    try {
+      if (!user?.email) {
+        throw new Error("No email found for this account");
+      }
+
+      const ephemeralClient = createEphemeralSupabaseClient();
+      const { error: signInError } = await ephemeralClient.auth.signInWithPassword(
+        {
+          email: user.email,
+          password: currentPassword,
+        }
+      );
+
+      if (signInError) {
+        throw new Error("Current password is incorrect");
+      }
+
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+      if (error) {
+        throw error;
+      }
+
+      return { error: null };
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      return { error };
+    }
+  };
+
   const updatePassword = async (password: string) => {
     try {
       const { error } = await supabase.auth.updateUser({ password });
@@ -256,6 +294,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signIn,
         signUp,
         resetPassword,
+        changePassword,
         updatePassword,
         signOut,
       }}
