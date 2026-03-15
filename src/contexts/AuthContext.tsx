@@ -36,6 +36,7 @@ const AUTH_CALLBACK_KEYS = [
 ];
 
 const PASSWORD_RESET_MODE = "reset-password";
+const PASSWORD_RESET_PATH = "/reset-password";
 
 const isBrowser = typeof window !== "undefined";
 
@@ -44,32 +45,54 @@ const getPasswordResetRedirectUrl = () => {
     return "";
   }
 
-  const redirectUrl = new URL(window.location.origin);
+  const redirectUrl = new URL(PASSWORD_RESET_PATH, window.location.origin);
   redirectUrl.searchParams.set("mode", PASSWORD_RESET_MODE);
   return redirectUrl.toString();
 };
 
-const hasRecoveryParams = () => {
+const getCurrentUrl = () => {
   if (!isBrowser) {
+    return null;
+  }
+
+  return new URL(window.location.href);
+};
+
+const getAuthCode = () => {
+  const url = getCurrentUrl();
+
+  if (!url) {
+    return null;
+  }
+
+  return new URLSearchParams(url.search).get("code");
+};
+
+const hasRecoveryParams = () => {
+  const url = getCurrentUrl();
+
+  if (!url) {
     return false;
   }
 
-  const searchParams = new URLSearchParams(window.location.search);
-  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const searchParams = new URLSearchParams(url.search);
+  const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
 
   return (
+    url.pathname === PASSWORD_RESET_PATH ||
     searchParams.get("mode") === PASSWORD_RESET_MODE ||
     searchParams.get("type") === "recovery" ||
     hashParams.get("type") === "recovery"
   );
 };
 
-const clearAuthCallbackParams = () => {
-  if (!isBrowser) {
+const clearAuthCallbackParams = (nextPathname?: string) => {
+  const url = getCurrentUrl();
+
+  if (!url) {
     return;
   }
 
-  const url = new URL(window.location.href);
   const searchParams = new URLSearchParams(url.search);
   const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
 
@@ -80,7 +103,8 @@ const clearAuthCallbackParams = () => {
 
   const nextSearch = searchParams.toString();
   const nextHash = hashParams.toString();
-  const nextUrl = `${url.pathname}${nextSearch ? `?${nextSearch}` : ""}${
+  const pathname = nextPathname ?? url.pathname;
+  const nextUrl = `${pathname}${nextSearch ? `?${nextSearch}` : ""}${
     nextHash ? `#${nextHash}` : ""
   }`;
 
@@ -100,7 +124,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   useEffect(() => {
-    const getUser = async () => {
+    const initializeAuth = async () => {
+      const authCode = getAuthCode();
+
+      if (hasRecoveryParams() && authCode) {
+        const { error } = await supabase.auth.exchangeCodeForSession(authCode);
+
+        if (!error) {
+          clearAuthCallbackParams(PASSWORD_RESET_PATH);
+        }
+      }
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -110,7 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     };
 
-    void getUser();
+    void initializeAuth();
 
     const {
       data: { subscription },
@@ -198,7 +232,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setIsPasswordRecovery(false);
-      clearAuthCallbackParams();
+      clearAuthCallbackParams("/");
 
       return { error: null };
     } catch (err: unknown) {
@@ -209,7 +243,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     setIsPasswordRecovery(false);
-    clearAuthCallbackParams();
+    clearAuthCallbackParams("/");
     await supabase.auth.signOut();
   };
 

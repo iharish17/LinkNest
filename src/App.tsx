@@ -17,7 +17,11 @@ function AppContent() {
     const updateView = () => {
       const path = window.location.pathname;
 
-      if (path === "/" || path === "") {
+      if (path === "/reset-password") {
+        setUsername(null);
+        setCurrentView("auth");
+      } else if (path === "/" || path === "") {
+        setUsername(null);
         setCurrentView(user && !isPasswordRecovery ? "dashboard" : "auth");
       } else {
         const usernameFromPath = path.substring(1);
