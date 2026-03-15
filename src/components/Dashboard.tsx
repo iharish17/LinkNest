@@ -11,6 +11,8 @@ import { LinkManager } from "./LinkManager";
 import { QRCodeGenerator } from "./QRCodeGenerator";
 import {
   LogOut,
+  Lock,
+  Mail,
   Copy,
   Check,
   ExternalLink,
@@ -33,7 +35,7 @@ interface Profile {
 }
 
 export function Dashboard() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, resetPassword, updatePassword } = useAuth();
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [displayName, setDisplayName] = useState("");
@@ -46,6 +48,12 @@ export function Dashboard() {
   const [showDeleteAvatarModal, setShowDeleteAvatarModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [sendingResetEmail, setSendingResetEmail] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
@@ -325,6 +333,82 @@ export function Dashboard() {
     }
   };
 
+  const closeChangePasswordModal = () => {
+    setShowChangePasswordModal(false);
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordError("");
+  };
+
+  const handleOpenChangePasswordModal = () => {
+    setShowDropdown(false);
+    setPasswordError("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setShowChangePasswordModal(true);
+  };
+
+  const handleChangePassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (newPassword.length < 6) {
+      setPasswordError("Password must be at least 6 characters");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
+
+    try {
+      setChangingPassword(true);
+      setPasswordError("");
+
+      const toastId = toast.loading("Updating password...");
+      const { error } = await updatePassword(newPassword);
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Password updated successfully.", { id: toastId });
+      closeChangePasswordModal();
+    } catch (err: Error | unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      setPasswordError(error.message || "Unable to update password");
+      toast.error(error.message || "Unable to update password");
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!user?.email) {
+      toast.error("No email found for this account.");
+      return;
+    }
+
+    try {
+      setShowDropdown(false);
+      setSendingResetEmail(true);
+
+      const toastId = toast.loading("Sending password reset email...");
+      const { error } = await resetPassword(user.email);
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success(`Reset email sent to ${user.email}.`, { id: toastId });
+    } catch (err: Error | unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      toast.error(error.message || "Unable to send reset email");
+    } finally {
+      setSendingResetEmail(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-purple-50 to-cyan-50 flex items-center justify-center">
@@ -403,6 +487,29 @@ export function Dashboard() {
                         <QrCode className="w-4 h-4 text-purple-600 group-hover:text-white transition-colors" />
                       </div>
                       Generate QR Code
+                    </button>
+
+                    <div className="h-px bg-gray-100 mx-2 my-1" />
+
+                    <button
+                      onClick={handleOpenChangePasswordModal}
+                      className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gradient-to-r hover:from-rose-50 hover:to-orange-50 transition-all duration-200 group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-rose-100 group-hover:bg-gradient-to-br group-hover:from-rose-500 group-hover:to-orange-500 flex items-center justify-center transition-all duration-200">
+                        <Lock className="w-4 h-4 text-rose-600 group-hover:text-white transition-colors" />
+                      </div>
+                      Change Password
+                    </button>
+
+                    <button
+                      onClick={handleForgotPassword}
+                      disabled={sendingResetEmail}
+                      className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 transition-all duration-200 group disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-cyan-100 group-hover:bg-gradient-to-br group-hover:from-cyan-500 group-hover:to-blue-500 flex items-center justify-center transition-all duration-200">
+                        <Mail className="w-4 h-4 text-cyan-600 group-hover:text-white transition-colors" />
+                      </div>
+                      {sendingResetEmail ? "Sending Reset Email..." : "Forgot Password"}
                     </button>
 
                     <div className="h-px bg-gray-100 mx-2 my-1" />
@@ -652,6 +759,84 @@ export function Dashboard() {
           avatarUrl={profile?.avatar_url || undefined}
           onClose={() => setShowQRModal(false)}
         />
+      )}
+
+      {showChangePasswordModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+        >
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={closeChangePasswordModal}
+          />
+
+          <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 max-w-md w-full z-10 animate-zoomIn">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              Change Password
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Update the password for {user?.email || "your account"}.
+            </p>
+
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 outline-none transition-all bg-white/50"
+                  placeholder="Enter a new password"
+                  minLength={6}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 outline-none transition-all bg-white/50"
+                  placeholder="Confirm your new password"
+                  minLength={6}
+                  required
+                />
+              </div>
+
+              {passwordError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                  {passwordError}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closeChangePasswordModal}
+                  className="px-4 py-2 rounded-xl bg-gray-200 text-gray-800 font-semibold"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={changingPassword}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-500 text-white font-semibold disabled:opacity-60"
+                >
+                  {changingPassword ? "Updating..." : "Update Password"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );
