@@ -72,37 +72,37 @@ export function QRCodeGenerator({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                 onClick={onClose}
             />
 
             {/* Modal */}
-            <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-gray-100 w-full max-w-lg z-10 animate-modalSlideUp overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="relative glass-modal rounded-2xl sm:rounded-3xl w-full max-w-lg z-10 animate-modalSlideUp overflow-hidden max-h-[90vh] flex flex-col">
                 {/* Header gradient bar */}
-                <div className="h-1.5 bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-500 flex-shrink-0" />
+                <div className="h-1.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-teal-500 flex-shrink-0" />
 
                 {/* Scrollable content */}
                 <div className="p-4 sm:p-6 overflow-y-auto flex-1">
                     {/* Title row */}
                     <div className="flex items-center justify-between mb-4 sm:mb-6">
                         <div className="flex items-center gap-2 sm:gap-3">
-                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center shadow-lg">
-                                <QrCode className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg glow-indigo">
+                                <QrCode className="w-5 h-5 text-white" />
                             </div>
                             <div>
-                                <h2 className="text-base sm:text-lg font-bold text-gray-900">
+                                <h2 className="text-base sm:text-lg font-bold text-white">
                                     QR Code Generator
                                 </h2>
-                                <p className="text-[10px] sm:text-xs text-gray-500">
+                                <p className="text-[10px] sm:text-xs text-white/50">
                                     Share your profile with a scan
                                 </p>
                             </div>
                         </div>
                         <button
                             onClick={onClose}
-                            className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-xl transition"
+                            className="p-2 hover:bg-white/10 rounded-xl transition"
                         >
-                            <X className="w-5 h-5 text-gray-500" />
+                            <X className="w-5 h-5 text-white/70" />
                         </button>
                     </div>
 
@@ -112,7 +112,7 @@ export function QRCodeGenerator({
                         ref={qrRef}
                     >
                         <div
-                            className="p-3 sm:p-5 rounded-2xl shadow-inner border border-gray-100"
+                            className="p-4 sm:p-6 rounded-2xl glass"
                             style={{ backgroundColor: bgColor }}
                         >
                             <QRCodeCanvas
@@ -137,8 +137,8 @@ export function QRCodeGenerator({
                     </div>
 
                     {/* URL display */}
-                    <div className="mb-4 sm:mb-5 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100">
-                        <p className="text-[10px] sm:text-xs text-gray-500 text-center truncate font-mono">
+                    <div className="mb-4 sm:mb-5 px-3 py-2.5 glass rounded-xl">
+                        <p className="text-[10px] sm:text-xs text-white/50 text-center truncate font-mono">
                             {profileUrl}
                         </p>
                     </div>
@@ -146,8 +146,8 @@ export function QRCodeGenerator({
                     {/* Color Presets */}
                     <div className="mb-4 sm:mb-5">
                         <div className="flex items-center gap-2 mb-2 sm:mb-3">
-                            <Palette className="w-4 h-4 text-purple-600" />
-                            <span className="text-xs sm:text-sm font-semibold text-gray-700">
+                            <Palette className="w-4 h-4 text-purple-400" />
+                            <span className="text-xs sm:text-sm font-semibold text-white/80">
                                 Color Themes
                             </span>
                         </div>
@@ -157,21 +157,21 @@ export function QRCodeGenerator({
                                     key={preset.name}
                                     onClick={() => applyPreset(preset)}
                                     className={`group relative flex flex-col items-center gap-1 sm:gap-1.5 p-2 sm:p-2.5 rounded-xl border-2 transition-all duration-200 hover:scale-105 ${fgColor === preset.fg && bgColor === preset.bg
-                                        ? "border-purple-500 bg-purple-50 shadow-md"
-                                        : "border-gray-100 hover:border-purple-200 bg-white"
+                                        ? "border-indigo-500 bg-indigo-500/20 shadow-lg"
+                                        : "border-white/10 hover:border-white/30 bg-white/5"
                                         }`}
                                 >
                                     <div className="flex gap-1">
                                         <div
-                                            className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-gray-200 shadow-sm"
+                                            className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-white/20 shadow-sm"
                                             style={{ backgroundColor: preset.fg }}
                                         />
                                         <div
-                                            className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-gray-200 shadow-sm"
+                                            className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-white/20 shadow-sm"
                                             style={{ backgroundColor: preset.bg }}
                                         />
                                     </div>
-                                    <span className="text-[9px] sm:text-[10px] font-medium text-gray-500 group-hover:text-gray-700">
+                                    <span className="text-[9px] sm:text-[10px] font-medium text-white/50 group-hover:text-white/80">
                                         {preset.name}
                                     </span>
                                 </button>
@@ -182,33 +182,33 @@ export function QRCodeGenerator({
                     {/* Custom Colors */}
                     <div className="flex gap-3 sm:gap-4 mb-4 sm:mb-5">
                         <div className="flex-1">
-                            <label className="block text-[10px] sm:text-xs font-semibold text-gray-600 mb-1 sm:mb-1.5">
+                            <label className="block text-[10px] sm:text-xs font-semibold text-white/60 mb-1.5">
                                 Foreground
                             </label>
-                            <div className="flex items-center gap-2 p-1.5 sm:p-2 bg-gray-50 rounded-xl border border-gray-100">
+                            <div className="flex items-center gap-2 p-2 glass rounded-xl">
                                 <input
                                     type="color"
                                     value={fgColor}
                                     onChange={(e) => setFgColor(e.target.value)}
-                                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border-0 cursor-pointer"
+                                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg border-0 cursor-pointer"
                                 />
-                                <span className="text-[10px] sm:text-xs font-mono text-gray-500 uppercase">
+                                <span className="text-[10px] sm:text-xs font-mono text-white/50 uppercase">
                                     {fgColor}
                                 </span>
                             </div>
                         </div>
                         <div className="flex-1">
-                            <label className="block text-[10px] sm:text-xs font-semibold text-gray-600 mb-1 sm:mb-1.5">
+                            <label className="block text-[10px] sm:text-xs font-semibold text-white/60 mb-1.5">
                                 Background
                             </label>
-                            <div className="flex items-center gap-2 p-1.5 sm:p-2 bg-gray-50 rounded-xl border border-gray-100">
+                            <div className="flex items-center gap-2 p-2 glass rounded-xl">
                                 <input
                                     type="color"
                                     value={bgColor}
                                     onChange={(e) => setBgColor(e.target.value)}
-                                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border-0 cursor-pointer"
+                                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg border-0 cursor-pointer"
                                 />
-                                <span className="text-[10px] sm:text-xs font-mono text-gray-500 uppercase">
+                                <span className="text-[10px] sm:text-xs font-mono text-white/50 uppercase">
                                     {bgColor}
                                 </span>
                             </div>
@@ -217,18 +217,18 @@ export function QRCodeGenerator({
 
                     {/* Profile Picture Toggle */}
                     {avatarUrl && (
-                        <div className="mb-4 sm:mb-6 flex items-center justify-between p-2.5 sm:p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="mb-4 sm:mb-6 flex items-center justify-between p-3 glass rounded-xl">
                             <div className="flex items-center gap-2 sm:gap-3">
-                                <Image className="w-4 h-4 text-purple-600" />
-                                <span className="text-xs sm:text-sm font-semibold text-gray-700">
+                                <Image className="w-4 h-4 text-purple-400" />
+                                <span className="text-xs sm:text-sm font-semibold text-white/80">
                                     Include Profile Photo
                                 </span>
                             </div>
                             <button
                                 onClick={() => setIncludeAvatar(!includeAvatar)}
                                 className={`relative w-11 h-6 sm:w-12 sm:h-7 rounded-full transition-colors duration-300 flex-shrink-0 ${includeAvatar
-                                    ? "bg-gradient-to-r from-purple-500 to-cyan-500"
-                                    : "bg-gray-300"
+                                    ? "bg-gradient-to-r from-indigo-500 to-violet-500"
+                                    : "bg-white/20"
                                     }`}
                             >
                                 <div
@@ -242,9 +242,9 @@ export function QRCodeGenerator({
                     {/* Download Button */}
                     <button
                         onClick={handleDownload}
-                        className="w-full py-2.5 sm:py-3 rounded-xl font-semibold text-sm sm:text-base bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-500 text-white shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2"
+                        className="w-full py-3 sm:py-3.5 rounded-xl font-semibold text-sm sm:text-base glass-button text-white shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2"
                     >
-                        <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <Download className="w-5 h-5" />
                         Download QR Code
                     </button>
                 </div>

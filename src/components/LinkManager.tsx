@@ -366,18 +366,18 @@ export function LinkManager({ userId }: LinkManagerProps) {
 
   if (loading) {
     return (
-      <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-gray-200 shadow-lg p-6">
-        <p className="text-gray-600 font-medium">Loading links...</p>
+      <div className="glass-card rounded-3xl p-6">
+        <p className="text-white/60 font-medium">Loading links...</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-lg border border-gray-200 p-6 animate-fadeIn">
+    <div className="glass-card rounded-3xl p-6 animate-fadeIn">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
-          <h2 className="text-xl font-extrabold text-gray-900">Your Links</h2>
-          <p className="text-xs text-gray-500">
+          <h2 className="text-xl font-extrabold text-white">Your Links</h2>
+          <p className="text-xs text-white/50">
             Add, edit, reorder and hide your links
           </p>
         </div>
@@ -386,7 +386,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
           <button
             onClick={() => setShowPopularModal(true)}
             disabled={isOffline}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-cyan-500 text-white shadow hover:from-purple-600 hover:to-cyan-600 transition-all font-semibold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl glass-button text-white shadow hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Sparkles className="w-4 h-4" />
             Popular Links
@@ -395,7 +395,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
           <button
             onClick={() => setShowAddForm(!showAddForm)}
             disabled={isOffline}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-purple-500 text-white shadow hover:from-rose-600 hover:to-purple-600 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 font-semibold disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl glass-button text-white shadow hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 font-semibold disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             <Plus className="w-4 h-4" />
             Add Link
@@ -408,7 +408,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
         {(state) => (
           <div className="fixed inset-0 z-[110] flex items-end justify-center px-4 pb-4 pt-10 sm:items-center">
             <div
-              className={`absolute inset-0 bg-slate-950/28 backdrop-blur-[2px] ${
+              className={`absolute inset-0 bg-black/60 backdrop-blur-sm ${
                 state === "enter"
                   ? "motion-overlay-enter"
                   : "motion-overlay-exit"
@@ -417,22 +417,22 @@ export function LinkManager({ userId }: LinkManagerProps) {
             />
 
             <div
-              className={`relative max-h-[78vh] w-full max-w-xl overflow-y-auto rounded-[2rem] border border-gray-200 bg-white px-5 pb-6 pt-5 shadow-2xl sm:rounded-3xl sm:p-6 ${
+              className={`relative max-h-[78vh] w-full max-w-xl overflow-y-auto rounded-[2rem] glass-modal px-5 pb-6 pt-5 sm:rounded-3xl sm:p-6 ${
                 state === "enter"
                   ? "motion-attachments-enter"
                   : "motion-attachments-exit"
               }`}
             >
               <div className="flex items-center justify-between mb-5">
-                <h3 className="text-xl font-extrabold text-gray-900">
+                <h3 className="text-xl font-extrabold text-white">
                   Popular Links
                 </h3>
 
                 <button
                   onClick={() => setShowPopularModal(false)}
-                  className="p-2 rounded-xl hover:bg-gray-100 transition"
+                  className="p-2 rounded-xl hover:bg-white/10 transition"
                 >
-                  <X className="w-5 h-5 text-gray-700" />
+                  <X className="w-5 h-5 text-white/70" />
                 </button>
               </div>
 
@@ -441,14 +441,14 @@ export function LinkManager({ userId }: LinkManagerProps) {
                   <button
                     key={link.name}
                     onClick={() => handleSelectPopular(link)}
-                    className="motion-attachment-item flex items-center gap-3 rounded-2xl border border-gray-200 p-3 font-semibold text-gray-800 transition hover:border-purple-400 hover:bg-rose-50"
+                    className="motion-attachment-item flex items-center gap-3 rounded-2xl glass p-3 font-semibold text-white/80 transition hover:bg-white/20 hover:border-white/30"
                     style={
                       {
                         "--stagger-index": index,
                       } as CSSProperties
                     }
                   >
-                    <div className="p-2 rounded-xl bg-gray-100">{link.icon}</div>
+                    <div className="p-2 rounded-xl bg-white/10">{link.icon}</div>
                     <span className="text-sm">{link.name}</span>
                   </button>
                 ))}
@@ -463,7 +463,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
         {(state) => (
           <form
             onSubmit={handleAddLink}
-            className={`mb-6 overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 p-5 ${
+            className={`mb-6 overflow-hidden rounded-2xl glass p-5 ${
               state === "enter"
                 ? "motion-inline-enter"
                 : "motion-inline-exit"
@@ -471,7 +471,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
           >
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-white/80 mb-2">
                   Title
                 </label>
                 <input
@@ -480,14 +480,14 @@ export function LinkManager({ userId }: LinkManagerProps) {
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  className="w-full rounded-xl border border-purple-200 bg-white/50 px-4 py-3 outline-none transition-all focus:border-purple-500 focus:ring-4 focus:ring-purple-300"
+                  className="w-full rounded-xl glass-input px-4 py-3.5 outline-none transition-all text-white placeholder-white/40"
                   placeholder="My Website"
                   required
                 />
               </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block text-sm font-semibold text-white/80 mb-2">
                 URL
               </label>
               <input
@@ -496,7 +496,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, url: e.target.value })
                 }
-                className="w-full rounded-xl border border-purple-200 bg-white/50 px-4 py-3 outline-none transition-all focus:border-purple-500 focus:ring-4 focus:ring-purple-300"
+                className="w-full rounded-xl glass-input px-4 py-3.5 outline-none transition-all text-white placeholder-white/40"
                 placeholder="example.com"
                 required
               />
@@ -504,7 +504,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
 
             {/* ✅ Platform Dropdown */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block text-sm font-semibold text-white/80 mb-2">
                 Platform
               </label>
               <select
@@ -512,33 +512,33 @@ export function LinkManager({ userId }: LinkManagerProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, platform: e.target.value })
                 }
-                className="w-full rounded-xl border border-purple-200 bg-white/50 px-4 py-3 outline-none transition-all focus:border-purple-500 focus:ring-4 focus:ring-purple-300"
+                className="w-full rounded-xl glass-input px-4 py-3.5 outline-none transition-all text-white"
               >
-                <option value="custom">Custom</option>
-                <option value="github">GitHub</option>
-                <option value="linkedin">LinkedIn</option>
-                <option value="instagram">Instagram</option>
-                <option value="youtube">YouTube</option>
-                <option value="facebook">Facebook</option>
-                <option value="twitter">Twitter / X</option>
-                <option value="tiktok">TikTok</option>
-                <option value="pinterest">Pinterest</option>
-                <option value="reddit">Reddit</option>
-                <option value="snapchat">Snapchat</option>
-                <option value="discord">Discord</option>
-                <option value="telegram">Telegram</option>
-                <option value="whatsapp">WhatsApp</option>
-                <option value="medium">Medium</option>
-                <option value="stackoverflow">Stack Overflow</option>
-                <option value="googledrive">Google Drive</option>
-                <option value="portfolio">Portfolio</option>
+                <option value="custom" className="text-black">Custom</option>
+                <option value="github" className="text-black">GitHub</option>
+                <option value="linkedin" className="text-black">LinkedIn</option>
+                <option value="instagram" className="text-black">Instagram</option>
+                <option value="youtube" className="text-black">YouTube</option>
+                <option value="facebook" className="text-black">Facebook</option>
+                <option value="twitter" className="text-black">Twitter / X</option>
+                <option value="tiktok" className="text-black">TikTok</option>
+                <option value="pinterest" className="text-black">Pinterest</option>
+                <option value="reddit" className="text-black">Reddit</option>
+                <option value="snapchat" className="text-black">Snapchat</option>
+                <option value="discord" className="text-black">Discord</option>
+                <option value="telegram" className="text-black">Telegram</option>
+                <option value="whatsapp" className="text-black">WhatsApp</option>
+                <option value="medium" className="text-black">Medium</option>
+                <option value="stackoverflow" className="text-black">Stack Overflow</option>
+                <option value="googledrive" className="text-black">Google Drive</option>
+                <option value="portfolio" className="text-black">Portfolio</option>
               </select>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-2">
               <button
                 type="submit"
-                className="flex-1 rounded-xl bg-rose-500 py-3 font-semibold text-white transition hover:bg-rose-600"
+                className="flex-1 rounded-xl glass-button py-3 font-semibold text-white transition hover:scale-[1.01] active:scale-[0.99]"
               >
                 Add Link
               </button>
@@ -549,7 +549,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
                   setShowAddForm(false);
                   setFormData({ title: "", url: "", platform: "custom" });
                 }}
-                className="rounded-xl bg-gray-200 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-300"
+                className="rounded-xl glass py-3 px-5 font-semibold text-white/70 transition hover:bg-white/20"
               >
                 Cancel
               </button>
@@ -560,7 +560,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
       </AnimatedPresence>
 
       {links.length === 0 ? (
-        <div className="text-center py-14 text-gray-500">
+        <div className="text-center py-14 text-white/50">
           <p className="font-medium">
             No links yet. Click "Add Link" to get started!
           </p>
@@ -592,12 +592,12 @@ export function LinkManager({ userId }: LinkManagerProps) {
           onDismiss={() => setIsDeletePopupOpen(false)}
           onExited={() => setLinkToDelete(null)}
           dismissDisabled={!!deletingLinkId}
-          popupClassName="w-80 rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl"
+          popupClassName="w-80 rounded-2xl glass-modal p-5"
         >
-          <h3 className="mb-2 text-lg font-bold text-gray-900">Delete Link</h3>
-          <p className="mb-1 text-sm text-gray-600">
+          <h3 className="mb-3 text-lg font-bold text-white">Delete Link</h3>
+          <p className="mb-4 text-sm text-white/60">
             Are you sure you want to delete{" "}
-            <span className="font-semibold text-gray-900">
+            <span className="font-semibold text-white">
               {linkToDelete.link.title}'s
             </span>{" "}
             link from your profile?
@@ -607,7 +607,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
             <button
               onClick={() => setIsDeletePopupOpen(false)}
               disabled={!!deletingLinkId}
-              className="rounded-xl bg-gray-200 px-4 py-2 font-semibold text-gray-800 disabled:opacity-60"
+              className="rounded-xl glass px-4 py-2.5 font-semibold text-white/80 disabled:opacity-60 hover:bg-white/10 transition"
             >
               Cancel
             </button>
@@ -615,7 +615,7 @@ export function LinkManager({ userId }: LinkManagerProps) {
             <button
               onClick={confirmDeleteLink}
               disabled={!!deletingLinkId}
-              className="rounded-xl bg-red-600 px-4 py-2 font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
+              className="rounded-xl bg-red-500/60 backdrop-blur-sm px-4 py-2.5 font-semibold text-white border border-red-400/30 transition hover:bg-red-500/70 disabled:opacity-60"
             >
               {deletingLinkId ? "Deleting..." : "Delete"}
             </button>
@@ -688,7 +688,7 @@ function LinkItem({
   if (showEditShell) {
     return (
       <div
-        className={`overflow-hidden rounded-2xl border border-purple-200 bg-purple-50 p-5 shadow-sm ${
+        className={`overflow-hidden rounded-2xl glass p-5 ${
           isEditing ? "motion-inline-enter" : "motion-inline-exit"
         }`}
       >
@@ -697,7 +697,7 @@ function LinkItem({
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 outline-none transition-all bg-white/50"
+            className="w-full px-4 py-3.5 glass-input rounded-xl outline-none transition-all text-white placeholder-white/40"
             placeholder="Title"
           />
 
@@ -705,14 +705,14 @@ function LinkItem({
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 outline-none transition-all bg-white/50"
+            className="w-full px-4 py-3.5 glass-input rounded-xl outline-none transition-all text-white placeholder-white/40"
             placeholder="URL"
           />
 
           <div className="flex gap-2">
             <button
               onClick={handleSave}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-500 to-purple-500 text-white rounded-xl hover:from-rose-600 hover:to-purple-600 transition font-semibold"
+              className="flex items-center gap-2 px-5 py-2.5 glass-button text-white rounded-xl transition font-semibold"
             >
               <Check className="w-4 h-4" />
               Save
@@ -720,7 +720,7 @@ function LinkItem({
 
             <button
               onClick={handleCancel}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-xl hover:bg-gray-300 transition font-semibold"
+              className="flex items-center gap-2 px-5 py-2.5 glass rounded-xl text-white/70 hover:bg-white/10 transition font-semibold"
             >
               <X className="w-4 h-4" />
               Cancel
@@ -733,9 +733,9 @@ function LinkItem({
 
   return (
     <div
-      className={`p-5 border rounded-2xl transition-all duration-300 shadow-sm hover:shadow-md ${link.is_active
-          ? "bg-white border-gray-200"
-          : "bg-gray-50 border-gray-200 opacity-60"
+      className={`p-5 glass-link-card rounded-2xl ${link.is_active
+          ? "opacity-100"
+          : "opacity-50"
         }`}
     >
       <div className="flex items-center gap-3">
@@ -743,53 +743,53 @@ function LinkItem({
           <button
             onClick={() => onMove(index, "up")}
             disabled={index === 0}
-            className="p-2 hover:bg-gray-100 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed transition"
+            className="p-2 hover:bg-white/10 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed transition"
           >
-            <ArrowUp className="w-4 h-4 text-gray-500" />
+            <ArrowUp className="w-4 h-4 text-white/50" />
           </button>
 
           <button
             onClick={() => onMove(index, "down")}
             disabled={index === totalLinks - 1}
-            className="p-2 hover:bg-gray-100 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed transition"
+            className="p-2 hover:bg-white/10 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed transition"
           >
-            <ArrowDown className="w-4 h-4 text-gray-500" />
+            <ArrowDown className="w-4 h-4 text-white/50" />
           </button>
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="font-bold text-gray-900 truncate">{link.title}</div>
-          <div className="text-sm text-gray-500 truncate">{link.url}</div>
+          <div className="font-bold text-white truncate">{link.title}</div>
+          <div className="text-sm text-white/50 truncate">{link.url}</div>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => onToggleActive(link)}
             disabled={isOffline}
-            className="p-2 hover:bg-gray-100 rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
+            className="p-2.5 hover:bg-white/10 rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
             title={link.is_active ? "Hide link" : "Show link"}
           >
             {link.is_active ? (
-              <Eye className="w-4 h-4 text-gray-600" />
+              <Eye className="w-4 h-4 text-white/70" />
             ) : (
-              <EyeOff className="w-4 h-4 text-gray-400" />
+              <EyeOff className="w-4 h-4 text-white/40" />
             )}
           </button>
 
           <button
             onClick={() => onEdit(link.id)}
             disabled={isOffline}
-            className="p-2 hover:bg-gray-100 rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
+            className="p-2.5 hover:bg-white/10 rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <Edit2 className="w-4 h-4 text-gray-600" />
+            <Edit2 className="w-4 h-4 text-white/70" />
           </button>
 
           <button
             onClick={(e) => onDelete(link, e.currentTarget)}
             disabled={isOffline}
-            className="p-2 hover:bg-red-50 rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
+            className="p-2.5 hover:bg-red-500/20 rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <Trash2 className="w-4 h-4 text-red-600" />
+            <Trash2 className="w-4 h-4 text-red-400" />
           </button>
         </div>
       </div>

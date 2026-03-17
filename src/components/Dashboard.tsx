@@ -73,6 +73,8 @@ export function Dashboard() {
   const [sendingResetEmail, setSendingResetEmail] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [showFullAvatar, setShowFullAvatar] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   // ✅ Analytics
   const [totalViews, setTotalViews] = useState(0);
@@ -458,36 +460,36 @@ export function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-purple-50 to-cyan-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gray-700 font-medium">Loading profile...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="glass-card p-8 rounded-3xl flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-white/80 font-medium">Loading profile...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-purple-50 to-cyan-50">
+    <div className="min-h-screen">
       {/* Offline Banner */}
       {isOffline && (
-        <div className="bg-amber-500 text-white text-center py-2 px-4 text-sm font-semibold flex items-center justify-center gap-2 animate-fadeIn">
+        <div className="glass bg-amber-500/80 text-white text-center py-2 px-4 text-sm font-semibold flex items-center justify-center gap-2 animate-fadeIn">
           <WifiOff className="w-4 h-4" />
           You're offline — viewing cached data
         </div>
       )}
-      <header className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-10">
+      <header className="glass sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-extrabold text-gray-900">LinkNest | Dashboard</h1>
-            <p className="text-xs text-gray-500">
+            <h1 className="text-xl font-extrabold text-white">LinkNest | Dashboard</h1>
+            <p className="text-xs text-white/50">
               Manage your profile & links easily ✨
             </p>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={handleViewProfile}
-              className="flex items-center gap-1 text-sm px-4 py-2 rounded-xl font-semibold bg-gradient-to-r from-rose-500 to-purple-500 text-white hover:from-rose-600 hover:to-purple-600 transition shadow-lg"
+              className="flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl font-semibold glass-button"
             >
               <ExternalLink className="w-4 h-4" />
               View Public Profile
@@ -497,17 +499,18 @@ export function Dashboard() {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowDropdown((prev) => !prev)}
-                className="flex items-center gap-2 text-sm px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition font-semibold text-gray-700"
+                className="flex items-center gap-2 text-sm px-3 py-2 rounded-xl glass-light hover:bg-white/20 transition font-semibold text-white"
               >
                 {profile?.avatar_url ? (
                   <img
                     src={profile.avatar_url}
                     alt="avatar"
-                    className="w-7 h-7 rounded-full object-cover border-2 border-purple-200"
+                    onClick={() => setShowDropdown((prev) => !prev)}
+                    className="w-8 h-8 rounded-full object-cover border-2 border-indigo-400 cursor-pointer hover:scale-110 transition-transform"
                   />
                 ) : (
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-rose-500 to-purple-500 flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center border border-white/30">
+                    <span className="text-sm font-bold text-white">
                       {profile?.display_name?.[0]?.toUpperCase() ||
                         profile?.username?.[0]?.toUpperCase() ||
                         "U"}
@@ -515,15 +518,15 @@ export function Dashboard() {
                   </div>
                 )}
                 <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-300 ${showDropdown ? "rotate-180" : ""
-                    }`}
+                  className={`w-4 h-4 transition-transform duration-300 ${showDropdown ? "rotate-180" : ""}
+                    `}
                 />
               </button>
 
               <AnimatedPresence show={showDropdown} duration={220}>
                 {(state) => (
                   <div
-                    className={`absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-2xl border border-white/70 bg-white/95 shadow-2xl backdrop-blur-xl ${
+                    className={`absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-2xl glass-dropdown ${
                       state === "enter"
                         ? "motion-menu-enter"
                         : "motion-menu-exit"
@@ -535,24 +538,24 @@ export function Dashboard() {
                           setShowDropdown(false);
                           setShowQRModal(true);
                         }}
-                        className="motion-menu-item group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 transition-all duration-200 hover:bg-gradient-to-r hover:from-purple-50 hover:to-cyan-50"
+                        className="motion-menu-item group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/80 transition-all duration-200 hover:bg-white/10"
                         style={{ "--stagger-index": 0 } as CSSProperties}
                       >
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100 transition-all duration-200 group-hover:bg-gradient-to-br group-hover:from-purple-500 group-hover:to-cyan-500">
-                          <QrCode className="h-4 w-4 text-purple-600 transition-colors group-hover:text-white" />
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/30 border border-purple-400/30">
+                          <QrCode className="h-4 w-4 text-purple-300" />
                         </div>
                         Generate QR Code
                       </button>
 
-                      <div className="mx-2 my-1 h-px bg-gray-100" />
+                      <div className="mx-2 my-1 h-px bg-white/10" />
 
                       <button
                         onClick={handleOpenChangePasswordModal}
-                        className="motion-menu-item group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 transition-all duration-200 hover:bg-gradient-to-r hover:from-rose-50 hover:to-orange-50"
+                        className="motion-menu-item group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/80 transition-all duration-200 hover:bg-white/10"
                         style={{ "--stagger-index": 1 } as CSSProperties}
                       >
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-100 transition-all duration-200 group-hover:bg-gradient-to-br group-hover:from-rose-500 group-hover:to-orange-500">
-                          <Lock className="h-4 w-4 text-rose-600 transition-colors group-hover:text-white" />
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-pink-500/30 border border-pink-400/30">
+                          <Lock className="h-4 w-4 text-pink-300" />
                         </div>
                         Change Password
                       </button>
@@ -560,29 +563,29 @@ export function Dashboard() {
                       <button
                         onClick={handleForgotPassword}
                         disabled={sendingResetEmail}
-                        className="motion-menu-item group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 transition-all duration-200 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="motion-menu-item group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/80 transition-all duration-200 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
                         style={{ "--stagger-index": 2 } as CSSProperties}
                       >
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-100 transition-all duration-200 group-hover:bg-gradient-to-br group-hover:from-cyan-500 group-hover:to-blue-500">
-                          <Mail className="h-4 w-4 text-cyan-600 transition-colors group-hover:text-white" />
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/30 border border-cyan-400/30">
+                          <Mail className="h-4 w-4 text-cyan-300" />
                         </div>
                         {sendingResetEmail
                           ? "Sending Reset Email..."
                           : "Forgot Password"}
                       </button>
 
-                      <div className="mx-2 my-1 h-px bg-gray-100" />
+                      <div className="mx-2 my-1 h-px bg-white/10" />
 
                       <button
                         onClick={() => {
                           setShowDropdown(false);
                           signOut();
                         }}
-                        className="motion-menu-item group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 transition-all duration-200 hover:bg-red-50 hover:text-red-600"
+                        className="motion-menu-item group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-white/80 transition-all duration-200 hover:bg-red-500/20 hover:text-red-300"
                         style={{ "--stagger-index": 3 } as CSSProperties}
                       >
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 transition-all duration-200 group-hover:bg-red-100">
-                          <LogOut className="h-4 w-4 text-gray-500 transition-colors group-hover:text-red-500" />
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
+                          <LogOut className="h-4 w-4 text-white/60" />
                         </div>
                         Logout
                       </button>
@@ -597,43 +600,46 @@ export function Dashboard() {
 
       <main className="max-w-6xl mx-auto px-4 py-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LEFT */}
-        <div className="lg:col-span-1 bg-white/80 backdrop-blur-xl p-6 rounded-3xl shadow-lg border border-pink-100/50 animate-slideInFromLeft">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">
+        <div className="lg:col-span-1 glass-card p-6 rounded-3xl animate-slideInFromLeft">
+          <h2 className="text-lg font-bold text-white mb-5">
             Profile Settings
           </h2>
 
           {/* ✅ Analytics Cards */}
           <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="p-4 rounded-2xl bg-rose-50 border border-rose-100">
-              <div className="flex items-center gap-2 text-rose-700 font-bold">
+            <div className="glass p-4 rounded-2xl">
+              <div className="flex items-center gap-2 text-indigo-300 font-bold">
                 <Eye className="w-4 h-4" />
                 Views
               </div>
-              <p className="text-2xl font-extrabold text-gray-900 mt-2">
+              <p className="text-2xl font-extrabold text-white mt-2">
                 {totalViews}
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-purple-50 border border-purple-100">
-              <div className="flex items-center gap-2 text-purple-700 font-bold">
+            <div className="glass p-4 rounded-2xl">
+              <div className="flex items-center gap-2 text-violet-300 font-bold">
                 <MousePointerClick className="w-4 h-4" />
                 Clicks
               </div>
-              <p className="text-2xl font-extrabold text-gray-900 mt-2">
+              <p className="text-2xl font-extrabold text-white mt-2">
                 {totalClicks}
               </p>
             </div>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm animate-fadeIn">
+            <div className="mb-4 p-3 glass border-red-500/30 rounded-xl text-red-300 text-sm animate-fadeIn">
               {error}
             </div>
           )}
 
           {/* Avatar Section */}
           <div className="flex flex-col items-center mb-6">
-            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-purple-200 shadow-md bg-purple-50 flex items-center justify-center">
+            <div 
+              onClick={() => profile?.avatar_url && setShowFullAvatar(true)}
+              className={`w-24 h-24 rounded-full overflow-hidden border-4 border-indigo-400/50 shadow-lg bg-indigo-500/20 flex items-center justify-center ${profile?.avatar_url ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`}
+            >
               {profile?.avatar_url ? (
                 <img
                   src={profile.avatar_url}
@@ -641,7 +647,7 @@ export function Dashboard() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-3xl font-extrabold text-rose-600">
+                <span className="text-3xl font-extrabold text-indigo-300">
                   {profile?.display_name?.[0]?.toUpperCase() ||
                     profile?.username?.[0]?.toUpperCase() ||
                     "U"}
@@ -649,7 +655,7 @@ export function Dashboard() {
               )}
             </div>
 
-            <label className="mt-4 cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-cyan-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-cyan-600 transition shadow-lg">
+            <label className="mt-4 cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 glass-button text-white rounded-xl font-semibold">
               <Upload className="w-4 h-4" />
               {uploadingAvatar ? "Uploading..." : "Upload Avatar"}
               <input
@@ -661,14 +667,14 @@ export function Dashboard() {
               />
             </label>
 
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-white/40 mt-2">
               JPG/PNG only. Max 2MB.
             </p>
 
             {profile?.avatar_url && (
               <button
                 onClick={(e) => handleDeleteAvatar(e.currentTarget)}
-                className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold bg-red-600 text-white hover:bg-red-700 transition"
+                className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold bg-red-500/20 text-red-300 border border-red-500/30 hover:bg-red-500/30 transition"
               >
                 <Trash2 className="w-4 h-4" />
                 Delete Avatar
@@ -683,12 +689,12 @@ export function Dashboard() {
               onDismiss={() => setIsDeleteAvatarPopupOpen(false)}
               onExited={() => setDeleteAvatarPopup(null)}
               dismissDisabled={deletingAvatar}
-              popupClassName="w-80 rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl"
+              popupClassName="w-80 rounded-2xl glass-modal p-5"
             >
-              <h3 className="mb-2 text-lg font-bold text-gray-900">
+              <h3 className="mb-3 text-lg font-bold text-white">
                 Delete Avatar
               </h3>
-              <p className="mb-4 text-sm text-gray-600">
+              <p className="mb-5 text-sm text-white/60">
                 Remove your profile photo? This action cannot be undone.
               </p>
 
@@ -696,7 +702,7 @@ export function Dashboard() {
                 <button
                   onClick={() => setIsDeleteAvatarPopupOpen(false)}
                   disabled={deletingAvatar}
-                  className="rounded-xl bg-gray-200 px-4 py-2 font-semibold text-gray-800 disabled:opacity-60"
+                  className="px-5 py-2.5 glass rounded-xl font-semibold text-white/80 disabled:opacity-60 hover:bg-white/10 transition"
                 >
                   Cancel
                 </button>
@@ -704,7 +710,7 @@ export function Dashboard() {
                 <button
                   onClick={confirmDeleteAvatar}
                   disabled={deletingAvatar}
-                  className="rounded-xl bg-red-600 px-4 py-2 font-semibold text-white disabled:opacity-60"
+                  className="px-5 py-2.5 bg-red-500/60 backdrop-blur-sm rounded-xl font-semibold text-white border border-red-400/30 disabled:opacity-60 hover:bg-red-500/70 transition"
                 >
                   {deletingAvatar ? "Deleting..." : "Delete"}
                 </button>
@@ -714,7 +720,7 @@ export function Dashboard() {
 
           {/* Username */}
           <div className="mb-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-white/80 mb-2">
               Username
             </label>
 
@@ -728,18 +734,18 @@ export function Dashboard() {
                     : prev
                 )
               }
-              className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 outline-none transition-all bg-white/50"
+              className="w-full px-4 py-3.5 glass-input rounded-xl outline-none transition-all text-white placeholder-white/40"
               placeholder="username"
             />
 
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-white/40 mt-2">
               Only letters, numbers, _ and - allowed.
             </p>
           </div>
 
           {/* Display Name */}
           <div className="mb-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-white/80 mb-2">
               Display Name
             </label>
 
@@ -747,21 +753,21 @@ export function Dashboard() {
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 outline-none transition-all bg-white/50"
+              className="w-full px-4 py-3.5 glass-input rounded-xl outline-none transition-all text-white placeholder-white/40"
               placeholder="Your name"
             />
           </div>
 
           {/* Bio */}
           <div className="mb-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-white/80 mb-2">
               Bio
             </label>
 
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 outline-none transition-all bg-white/50"
+              className="w-full px-4 py-3.5 glass-input rounded-xl outline-none transition-all text-white placeholder-white/40 resize-none"
               placeholder="Write something about you..."
               rows={3}
             />
@@ -771,7 +777,7 @@ export function Dashboard() {
           <button
             onClick={handleSaveProfile}
             disabled={saving}
-            className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-500 text-white shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 hover:from-rose-600 hover:via-purple-600 hover:to-cyan-600"
+            className="w-full py-3.5 rounded-xl font-semibold glass-button text-white shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Profile"}
           </button>
@@ -779,7 +785,7 @@ export function Dashboard() {
           {/* Profile URL */}
           {profileUrl && (
             <div className="mt-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block text-sm font-semibold text-white/80 mb-2">
                 Your Profile Link
               </label>
 
@@ -788,18 +794,18 @@ export function Dashboard() {
                   type="text"
                   value={profileUrl}
                   readOnly
-                  className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 text-sm"
+                  className="flex-1 px-4 py-3 glass-input rounded-xl text-white/70 text-sm"
                 />
 
                 <button
                   onClick={copyToClipboard}
-                  className="px-3 py-2 bg-gray-100 border border-gray-200 rounded-xl hover:bg-gray-200 transition"
+                  className="px-4 py-2 glass rounded-xl hover:bg-white/20 transition"
                   title="Copy Link"
                 >
                   {copied ? (
-                    <Check className="w-4 h-4 text-green-600" />
+                    <Check className="w-5 h-5 text-green-400" />
                   ) : (
-                    <Copy className="w-4 h-4 text-gray-700" />
+                    <Copy className="w-5 h-5 text-white/70" />
                   )}
                 </button>
               </div>
@@ -812,6 +818,38 @@ export function Dashboard() {
           {user?.id && <LinkManager userId={user.id} />}
         </div>
       </main>
+
+      {/* Full Screen Avatar Modal */}
+      {showFullAvatar && profile?.avatar_url && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn p-4"
+          onClick={() => setShowFullAvatar(false)}
+        >
+          <div 
+            className="relative max-w-md w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={profile.avatar_url}
+              alt="Full size avatar"
+              onClick={() => setIsZoomed(!isZoomed)}
+              className={`w-full rounded-2xl shadow-2xl object-contain cursor-zoom-in transition-transform duration-300 ${isZoomed ? 'scale-150' : ''}`}
+              style={{ maxHeight: isZoomed ? '90vh' : '70vh' }}
+            />
+            <button
+              onClick={() => setShowFullAvatar(false)}
+              className="absolute -top-2 -right-2 p-2 rounded-full bg-white/20 hover:bg-white/30 transition text-white"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <p className="text-white/50 text-center text-sm mt-2">
+              {isZoomed ? 'Click to zoom out' : 'Click to zoom in'}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* QR Code Modal */}
       {showQRModal && profileUrl && (
@@ -829,46 +867,46 @@ export function Dashboard() {
           className="fixed inset-0 z-50 flex items-center justify-center px-4"
         >
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={closeChangePasswordModal}
           />
 
-          <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 max-w-md w-full z-10 animate-zoomIn">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">
+          <div className="relative glass-modal rounded-2xl p-6 max-w-md w-full z-10 animate-zoomIn">
+            <h3 className="text-xl font-bold text-white mb-2">
               Change Password
             </h3>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-white/60 mb-4">
               Update the password for {user?.email || "your account"}.
             </p>
-            <p className="text-xs text-gray-500 mb-4">
+            <p className="text-xs text-white/40 mb-6">
               If you do not remember your current password, use the forgot
               password option in the account menu.
             </p>
 
             <form onSubmit={handleChangePassword} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-white/80 mb-2">
                   Current Password
                 </label>
                 <input
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 outline-none transition-all bg-white/50"
+                  className="w-full px-4 py-3.5 glass-input rounded-xl outline-none transition-all text-white placeholder-white/40"
                   placeholder="Enter your current password"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-white/80 mb-2">
                   New Password
                 </label>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 outline-none transition-all bg-white/50"
+                  className="w-full px-4 py-3.5 glass-input rounded-xl outline-none transition-all text-white placeholder-white/40"
                   placeholder="Enter a new password"
                   minLength={6}
                   required
@@ -876,14 +914,14 @@ export function Dashboard() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-white/80 mb-2">
                   Confirm Password
                 </label>
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 outline-none transition-all bg-white/50"
+                  className="w-full px-4 py-3.5 glass-input rounded-xl outline-none transition-all text-white placeholder-white/40"
                   placeholder="Confirm your new password"
                   minLength={6}
                   required
@@ -891,7 +929,7 @@ export function Dashboard() {
               </div>
 
               {passwordError && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                <div className="p-3 glass border-red-500/30 rounded-xl text-red-300 text-sm">
                   {passwordError}
                 </div>
               )}
@@ -908,7 +946,7 @@ export function Dashboard() {
                 <button
                   type="submit"
                   disabled={changingPassword}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-500 text-white font-semibold disabled:opacity-60"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-500 via-indigo-500 to-teal-500 text-white font-semibold disabled:opacity-60"
                 >
                   {changingPassword ? "Updating..." : "Update Password"}
                 </button>
